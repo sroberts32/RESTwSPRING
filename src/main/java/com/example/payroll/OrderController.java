@@ -1,13 +1,13 @@
 package com.example.payroll;
 
-import java.net.http.HttpHeaders;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.mediatype.problem.Problem;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import antlr.collections.List;
+
+import java.util.List;
 
 @RestController
 class OrderController {
@@ -36,10 +37,10 @@ class OrderController {
 
     @GetMapping("/orders")
     CollectionModel<EntityModel<Order>> all() {
-
-        List<EntityModel<Order>> orders = orderRepository.findAll().stream() //
+        List<EntityModel<Order>> orders = new ArrayList<>();
+        orders.addAll(orderRepository.findAll().stream() //
                 .map(assembler::toModel) //
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
 
         return CollectionModel.of(orders, //
                 linkTo(methodOn(OrderController.class).all()).withSelfRel());
@@ -78,7 +79,9 @@ class OrderController {
 
         return ResponseEntity //
                 .status(HttpStatus.METHOD_NOT_ALLOWED) //
-                .header(HttpHeaders.CONTENT_TYPE, MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE) //
+                //was .header(HttpHeaders.CONTENT_TYPE, etc...)
+
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE) //
                 .body(Problem.create() //
                         .withTitle("Method not allowed") //
                         .withDetail("You can't complete an order that is in the " + order.getStatus() + " status"));
